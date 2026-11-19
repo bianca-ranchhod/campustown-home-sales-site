@@ -78,6 +78,19 @@
     }
     .banner .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
     .banner p { margin: 0; font-size: 0.9375rem; }
+    .figures {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0 0;
+      padding: 0;
+    }
+    .figures div { border-top: 2px solid var(--bar); padding-top: 0.5rem; }
+    .figures dt { color: var(--muted); font-size: 0.8125rem; }
+    .figures dd { margin: 0; font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    @media (max-width: 30rem) {
+      .figures { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -95,6 +108,12 @@
   <main>
     <h1>This site is under construction</h1>
     <p>It will show findings from the College-town home sales dataset.</p>
+
+    <dl class="figures" aria-label="Key figures">
+      <div><dt>Cities</dt><dd id="fig-cities">–</dd></div>
+      <div><dt>Sales counted</dt><dd id="fig-sales">–</dd></div>
+      <div><dt>Lowest to highest city median</dt><dd id="fig-range">–</dd></div>
+    </dl>
 
     <section class="chart" aria-labelledby="chart-title">
       <h2 id="chart-title">Median sale price by city</h2>
@@ -186,6 +205,12 @@
           items.sort(function (a, b) { return b.median - a.median; });
           var largest = items[0].median;
           document.getElementById('city-count').textContent = items.length;
+          var totalSales = items.reduce(function (sum, item) { return sum + item.sales; }, 0);
+          var lowest = items[items.length - 1].median;
+          document.getElementById('fig-cities').textContent = items.length;
+          document.getElementById('fig-sales').textContent = totalSales.toLocaleString('en-US');
+          document.getElementById('fig-range').textContent =
+            money.format(Math.round(lowest)) + ' to ' + money.format(Math.round(largest));
 
           items.forEach(function (item) {
             var li = document.createElement('li');
