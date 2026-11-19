@@ -78,6 +78,34 @@
     }
     .banner .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
     .banner p { margin: 0; font-size: 0.9375rem; }
+    .figures {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0 0;
+      padding: 0;
+    }
+    .figures div { border-top: 2px solid var(--bar); padding-top: 0.5rem; }
+    .figures dt { color: var(--muted); font-size: 0.8125rem; }
+    .figures dd { margin: 0; font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    @media (max-width: 30rem) {
+      .figures { grid-template-columns: 1fr; }
+    }
+    .table-section { margin-top: 2.5rem; }
+    .table-section h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+    th, td { padding: 0.5rem 0.5rem; border-bottom: 1px solid var(--track); text-align: left; }
+    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    th button {
+      all: unset;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+    }
+    th button:focus-visible { outline: 2px solid var(--bar); outline-offset: 2px; }
+    th[aria-sort="ascending"] button::after { content: " \25B2"; font-size: 0.75em; }
+    th[aria-sort="descending"] button::after { content: " \25BC"; font-size: 0.75em; }
   </style>
 </head>
 <body>
@@ -96,15 +124,49 @@
     <h1>This site is under construction</h1>
     <p>It will show findings from the College-town home sales dataset.</p>
 
+    <dl class="figures" aria-label="Key figures">
+      <div><dt>Cities</dt><dd id="fig-cities">–</dd></div>
+      <div><dt>Sales counted</dt><dd id="fig-sales">–</dd></div>
+      <div><dt>Lowest to highest city median</dt><dd id="fig-range">–</dd></div>
+    </dl>
+
     <section class="chart" aria-labelledby="chart-title">
       <h2 id="chart-title">Median sale price by city</h2>
       <p class="note">
-        Each bar is the median sale price of the home sales in one city, from the 18 cities in the dataset.
+        Each bar is the median sale price of the home sales in one city, from the <span id="city-count">all</span> cities in the dataset.
         Sales under $10,000 are left out. The numbers are computed in your browser from
         <code>data/college_town_home_sales.csv</code>.
       </p>
       <p id="chart-status" role="status">Loading the data…</p>
       <ol class="bars" id="bars"></ol>
+    </section>
+
+    <section class="table-section" aria-labelledby="table-title">
+      <h2 id="table-title">All cities</h2>
+      <p class="note">Select a column heading to sort. The same figures as the chart above.</p>
+      <div class="table-wrap">
+        <table id="city-table">
+          <thead>
+            <tr>
+              <th scope="col" data-key="city"><button type="button">City</button></th>
+              <th scope="col" data-key="campus"><button type="button">Nearest campus</button></th>
+              <th scope="col" class="num" data-key="sales"><button type="button">Sales</button></th>
+              <th scope="col" class="num" data-key="median" aria-sort="descending"><button type="button">Median sale price</button></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="method" aria-labelledby="method-title">
+      <h2 id="method-title">How these numbers were calculated</h2>
+      <ul class="note">
+        <li>Every figure is computed from <code>data/college_town_home_sales.csv</code> when the page loads.</li>
+        <li>The median sale price is the middle sale price of one city's home sales, after sales under $10,000 are left out. That cutoff leaves out <span id="excluded">–</span> sales.</li>
+        <li>These are prices paid to buy homes. They are not rents, so they do not show what a student would pay to live in a home.</li>
+        <li>The sales were collected in March 2026 from public property listings. The prices are as the source reported them and have not been checked against county records.</li>
+      </ul>
     </section>
   </main>
   <footer>
@@ -116,6 +178,8 @@
       var MIN_SALE_PRICE = 10000;
       var status = document.getElementById('chart-status');
       var list = document.getElementById('bars');
+      var tableBody = document.getElementById('table-body');
+      var table = document.getElementById('city-table');
 
       // Parses CSV text into rows of fields. Handles quoted fields that contain commas,
       // such as "University of California, Davis".
@@ -157,6 +221,58 @@
         style: 'currency', currency: 'USD', maximumFractionDigits: 0
       });
 
+      // Table sorting state
+      var sortKey = 'median';
+      var sortDir = -1; // -1 = descending, 1 = ascending
+      var tableItems = [];
+
+      function compare(a, b) {
+        var x = a[sortKey], y = b[sortKey];
+        if (typeof x === 'string') { return x.localeCompare(y) * sortDir; }
+        return (x - y) * sortDir;
+      }
+
+      function renderTable() {
+        var sorted = tableItems.slice().sort(compare);
+        tableBody.innerHTML = '';
+        sorted.forEach(function (item) {
+          var tr = document.createElement('tr');
+          [
+            { text: item.city },
+            { text: item.campus },
+            { text: item.sales.toLocaleString('en-US'), num: true },
+            { text: money.format(Math.round(item.median)), num: true }
+          ].forEach(function (cell) {
+            var td = document.createElement('td');
+            td.textContent = cell.text;
+            if (cell.num) { td.className = 'num'; }
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        });
+
+        Array.prototype.forEach.call(table.querySelectorAll('th[data-key]'), function (th) {
+          if (th.getAttribute('data-key') === sortKey) {
+            th.setAttribute('aria-sort', sortDir === 1 ? 'ascending' : 'descending');
+          } else {
+            th.removeAttribute('aria-sort');
+          }
+        });
+      }
+
+      Array.prototype.forEach.call(table.querySelectorAll('th[data-key] button'), function (button) {
+        button.addEventListener('click', function () {
+          var key = button.parentNode.getAttribute('data-key');
+          if (key === sortKey) {
+            sortDir = -sortDir;
+          } else {
+            sortKey = key;
+            sortDir = (key === 'city' || key === 'campus') ? 1 : -1;
+          }
+          renderTable();
+        });
+      });
+
       fetch('data/college_town_home_sales.csv')
         .then(function (res) {
           if (!res.ok) { throw new Error('HTTP ' + res.status); }
@@ -167,7 +283,10 @@
           var header = rows[0];
           var cityCol = header.indexOf('city');
           var priceCol = header.indexOf('sale_price');
+          var campusCol = header.indexOf('university');
           var byCity = {};
+          var campusOf = {};
+          var excluded = 0;
 
           for (var i = 1; i < rows.length; i++) {
             var r = rows[i];
@@ -175,16 +294,32 @@
             var raw = r[priceCol].trim();
             if (raw === '') { continue; }
             var price = Number(raw);
-            if (!isFinite(price) || price < MIN_SALE_PRICE) { continue; }
+            if (!isFinite(price)) { continue; }
+            if (price < MIN_SALE_PRICE) { excluded++; continue; }
             var city = r[cityCol].trim();
             (byCity[city] = byCity[city] || []).push(price);
+            if (!campusOf[city]) { campusOf[city] = r[campusCol].trim(); }
           }
 
           var items = Object.keys(byCity).map(function (city) {
-            return { city: city, sales: byCity[city].length, median: median(byCity[city]) };
+            return {
+              city: city,
+              campus: campusOf[city],
+              sales: byCity[city].length,
+              median: median(byCity[city])
+            };
           });
           items.sort(function (a, b) { return b.median - a.median; });
           var largest = items[0].median;
+          var lowest = items[items.length - 1].median;
+          var totalSales = items.reduce(function (sum, item) { return sum + item.sales; }, 0);
+
+          document.getElementById('city-count').textContent = items.length;
+          document.getElementById('excluded').textContent = excluded.toLocaleString('en-US');
+          document.getElementById('fig-cities').textContent = items.length;
+          document.getElementById('fig-sales').textContent = totalSales.toLocaleString('en-US');
+          document.getElementById('fig-range').textContent =
+            money.format(Math.round(lowest)) + ' to ' + money.format(Math.round(largest));
 
           items.forEach(function (item) {
             var li = document.createElement('li');
@@ -212,6 +347,9 @@
             li.appendChild(value);
             list.appendChild(li);
           });
+
+          tableItems = items;
+          renderTable();
 
           status.textContent = 'Showing the median sale price for ' + items.length + ' cities.';
         })
