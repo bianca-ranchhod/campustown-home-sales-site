@@ -91,6 +91,21 @@
     @media (max-width: 30rem) {
       .figures { grid-template-columns: 1fr; }
     }
+    .table-section { margin-top: 2.5rem; }
+    .table-section h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+    th, td { padding: 0.5rem 0.5rem; border-bottom: 1px solid var(--track); text-align: left; }
+    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    th button {
+      all: unset;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+    }
+    th button:focus-visible { outline: 2px solid var(--bar); outline-offset: 2px; }
+    th[aria-sort="ascending"] button::after { content: " \25B2"; font-size: 0.75em; }
+    th[aria-sort="descending"] button::after { content: " \25BC"; font-size: 0.75em; }
   </style>
 </head>
 <body>
@@ -125,6 +140,24 @@
       <p id="chart-status" role="status">Loading the data…</p>
       <ol class="bars" id="bars"></ol>
     </section>
+
+    <section class="table-section" aria-labelledby="table-title">
+      <h2 id="table-title">All cities</h2>
+      <p class="note">Select a column heading to sort. The same figures as the chart above.</p>
+      <div class="table-wrap">
+        <table id="city-table">
+          <thead>
+            <tr>
+              <th scope="col" data-key="city"><button type="button">City</button></th>
+              <th scope="col" data-key="campus"><button type="button">Nearest campus</button></th>
+              <th scope="col" class="num" data-key="sales"><button type="button">Sales</button></th>
+              <th scope="col" class="num" data-key="median" aria-sort="descending"><button type="button">Median sale price</button></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
   <footer>
     <p>Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for Business Emerging Technologies. Data collected March 2026.</p>
@@ -135,6 +168,8 @@
       var MIN_SALE_PRICE = 10000;
       var status = document.getElementById('chart-status');
       var list = document.getElementById('bars');
+      var tableBody = document.getElementById('table-body');
+      var table = document.getElementById('city-table');
 
       // Parses CSV text into rows of fields. Handles quoted fields that contain commas,
       // such as "University of California, Davis".
@@ -176,6 +211,58 @@
         style: 'currency', currency: 'USD', maximumFractionDigits: 0
       });
 
+      // Table sorting state
+      var sortKey = 'median';
+      var sortDir = -1; // -1 = descending, 1 = ascending
+      var tableItems = [];
+
+      function compare(a, b) {
+        var x = a[sortKey], y = b[sortKey];
+        if (typeof x === 'string') { return x.localeCompare(y) * sortDir; }
+        return (x - y) * sortDir;
+      }
+
+      function renderTable() {
+        var sorted = tableItems.slice().sort(compare);
+        tableBody.innerHTML = '';
+        sorted.forEach(function (item) {
+          var tr = document.createElement('tr');
+          [
+            { text: item.city },
+            { text: item.campus },
+            { text: item.sales.toLocaleString('en-US'), num: true },
+            { text: money.format(Math.round(item.median)), num: true }
+          ].forEach(function (cell) {
+            var td = document.createElement('td');
+            td.textContent = cell.text;
+            if (cell.num) { td.className = 'num'; }
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        });
+
+        Array.prototype.forEach.call(table.querySelectorAll('th[data-key]'), function (th) {
+          if (th.getAttribute('data-key') === sortKey) {
+            th.setAttribute('aria-sort', sortDir === 1 ? 'ascending' : 'descending');
+          } else {
+            th.removeAttribute('aria-sort');
+          }
+        });
+      }
+
+      Array.prototype.forEach.call(table.querySelectorAll('th[data-key] button'), function (button) {
+        button.addEventListener('click', function () {
+          var key = button.parentNode.getAttribute('data-key');
+          if (key === sortKey) {
+            sortDir = -sortDir;
+          } else {
+            sortKey = key;
+            sortDir = (key === 'city' || key === 'campus') ? 1 : -1;
+          }
+          renderTable();
+        });
+      });
+
       fetch('data/college_town_home_sales.csv')
         .then(function (res) {
           if (!res.ok) { throw new Error('HTTP ' + res.status); }
@@ -186,7 +273,9 @@
           var header = rows[0];
           var cityCol = header.indexOf('city');
           var priceCol = header.indexOf('sale_price');
+          var campusCol = header.indexOf('university');
           var byCity = {};
+          var campusOf = {};
 
           for (var i = 1; i < rows.length; i++) {
             var r = rows[i];
@@ -197,16 +286,23 @@
             if (!isFinite(price) || price < MIN_SALE_PRICE) { continue; }
             var city = r[cityCol].trim();
             (byCity[city] = byCity[city] || []).push(price);
+            if (!campusOf[city]) { campusOf[city] = r[campusCol].trim(); }
           }
 
           var items = Object.keys(byCity).map(function (city) {
-            return { city: city, sales: byCity[city].length, median: median(byCity[city]) };
+            return {
+              city: city,
+              campus: campusOf[city],
+              sales: byCity[city].length,
+              median: median(byCity[city])
+            };
           });
           items.sort(function (a, b) { return b.median - a.median; });
           var largest = items[0].median;
-          document.getElementById('city-count').textContent = items.length;
-          var totalSales = items.reduce(function (sum, item) { return sum + item.sales; }, 0);
           var lowest = items[items.length - 1].median;
+          var totalSales = items.reduce(function (sum, item) { return sum + item.sales; }, 0);
+
+          document.getElementById('city-count').textContent = items.length;
           document.getElementById('fig-cities').textContent = items.length;
           document.getElementById('fig-sales').textContent = totalSales.toLocaleString('en-US');
           document.getElementById('fig-range').textContent =
@@ -238,6 +334,9 @@
             li.appendChild(value);
             list.appendChild(li);
           });
+
+          tableItems = items;
+          renderTable();
 
           status.textContent = 'Showing the median sale price for ' + items.length + ' cities.';
         })
