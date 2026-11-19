@@ -158,6 +158,16 @@
         </table>
       </div>
     </section>
+
+    <section class="method" aria-labelledby="method-title">
+      <h2 id="method-title">How these numbers were calculated</h2>
+      <ul class="note">
+        <li>Every figure is computed from <code>data/college_town_home_sales.csv</code> when the page loads.</li>
+        <li>The median sale price is the middle sale price of one city's home sales, after sales under $10,000 are left out. That cutoff leaves out <span id="excluded">–</span> sales.</li>
+        <li>These are prices paid to buy homes. They are not rents, so they do not show what a student would pay to live in a home.</li>
+        <li>The sales were collected in March 2026 from public property listings. The prices are as the source reported them and have not been checked against county records.</li>
+      </ul>
+    </section>
   </main>
   <footer>
     <p>Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for Business Emerging Technologies. Data collected March 2026.</p>
@@ -276,6 +286,7 @@
           var campusCol = header.indexOf('university');
           var byCity = {};
           var campusOf = {};
+          var excluded = 0;
 
           for (var i = 1; i < rows.length; i++) {
             var r = rows[i];
@@ -283,7 +294,8 @@
             var raw = r[priceCol].trim();
             if (raw === '') { continue; }
             var price = Number(raw);
-            if (!isFinite(price) || price < MIN_SALE_PRICE) { continue; }
+            if (!isFinite(price)) { continue; }
+            if (price < MIN_SALE_PRICE) { excluded++; continue; }
             var city = r[cityCol].trim();
             (byCity[city] = byCity[city] || []).push(price);
             if (!campusOf[city]) { campusOf[city] = r[campusCol].trim(); }
@@ -303,6 +315,7 @@
           var totalSales = items.reduce(function (sum, item) { return sum + item.sales; }, 0);
 
           document.getElementById('city-count').textContent = items.length;
+          document.getElementById('excluded').textContent = excluded.toLocaleString('en-US');
           document.getElementById('fig-cities').textContent = items.length;
           document.getElementById('fig-sales').textContent = totalSales.toLocaleString('en-US');
           document.getElementById('fig-range').textContent =
