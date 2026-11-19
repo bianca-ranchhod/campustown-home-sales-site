@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<!-- A placeholder from the Home Sales template. Replace this file with your site's first page. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Under construction</title>
+  <title>Median sale price by college town</title>
   <!-- An empty icon, so the browser doesn't log an error looking for favicon.ico -->
   <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap">
   <style>
     :root {
       color-scheme: light dark;
@@ -15,6 +17,24 @@
       --muted: #5b6670;
       --bar: #2f6f9f;
       --track: #e4e8ec;
+      --rule: #d5dbe1;
+
+      --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+
+      /* Type scale: 16px base, about a 1.25 ratio */
+      --text-xs: 0.75rem;     /* labels */
+      --text-sm: 0.875rem;    /* notes, captions */
+      --text-base: 1rem;      /* body */
+      --text-md: 1.125rem;    /* subheads */
+      --text-lg: 1.5rem;      /* section headings */
+      --text-xl: 2.25rem;     /* page title */
+      --text-figure: 2rem;    /* key figure values */
+
+      /* Spacing */
+      --space-section: 4rem;
+      --space-block: 2.5rem;
+      --space-gutter: 1rem;
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
@@ -23,6 +43,7 @@
         --muted: #a7b0b8;
         --bar: #6aa9d8;
         --track: #2b333b;
+        --rule: #3a444e;
       }
     }
     :root[data-theme="dark"] {
@@ -31,147 +52,243 @@
       --muted: #a7b0b8;
       --bar: #6aa9d8;
       --track: #2b333b;
+      --rule: #3a444e;
     }
+
+    * { box-sizing: border-box; }
     body {
       background: var(--bg);
       color: var(--text);
-      max-width: 40rem;
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      font-weight: 400;
+      line-height: 1.6;
+      letter-spacing: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 64rem;
       margin: 0 auto;
-      padding: 3rem 1rem;
-      font-family: system-ui, sans-serif;
-      line-height: 1.5;
+      padding: 0 var(--space-gutter);
     }
-    .note { color: var(--muted); font-size: 0.9375rem; }
-    .chart { margin-top: 2rem; }
-    .chart h2 { font-size: 1.25rem; margin-bottom: 0.25rem; }
-    #chart-status { color: var(--muted); }
-    .bars { list-style: none; padding: 0; margin: 1rem 0 0; }
-    .bars li {
-      display: grid;
-      grid-template-columns: 9.5rem 1fr 5.5rem;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
+
+    /* Headings */
+    h1, h2 { font-family: var(--font-display); font-weight: 600; color: var(--text); }
+    h1 {
+      font-size: var(--text-xl);
+      line-height: 1.15;
+      letter-spacing: -0.015em;
+      margin: 0 0 0.75rem;
     }
-    .city small { display: block; color: var(--muted); font-size: 0.8125rem; }
-    .track {
-      background: var(--track);
-      border-radius: 3px;
-      height: 1.1rem;
-      overflow: hidden;
+    h2 {
+      font-size: var(--text-lg);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.5rem;
     }
-    .fill { display: block; height: 100%; background: var(--bar); border-radius: 3px; }
-    .value { text-align: right; font-variant-numeric: tabular-nums; }
-    footer { margin-top: 3rem; font-size: 0.875rem; opacity: 0.75; }
-    .site-header {
-      border-bottom: 1px solid var(--track);
-      padding: 1rem 0;
-      margin-bottom: 0;
+
+    .note { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; margin: 0; }
+    code { font-size: 0.9em; }
+
+    /* Header and banner */
+    .site-header { padding: 1.5rem 0 1.25rem; border-bottom: 1px solid var(--rule); }
+    .site-header .title {
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0;
     }
-    .site-header .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
-    .site-header .title { font-size: 1.125rem; font-weight: 700; margin: 0; }
-    .site-header .subtitle { color: var(--muted); font-size: 0.875rem; margin: 0; }
-    .banner {
-      background: var(--track);
-      border-bottom: 1px solid var(--track);
-      padding: 1rem 0;
-    }
-    .banner .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
-    .banner p { margin: 0; font-size: 0.9375rem; }
+    .site-header .subtitle { color: var(--muted); font-size: var(--text-sm); margin: 0.125rem 0 0; }
+    .banner { padding: 1.5rem 0; }
+    .banner p { margin: 0; max-width: 46rem; font-size: var(--text-base); }
+
+    /* Main */
+    main { padding-top: 2.5rem; }
+    main > p { margin: 0; color: var(--muted); max-width: 46rem; }
+
+    /* Key figures */
     .figures {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin: 2rem 0 0;
+      gap: 1.5rem;
+      margin: var(--space-block) 0 0;
       padding: 0;
     }
-    .figures div { border-top: 2px solid var(--bar); padding-top: 0.5rem; }
-    .figures dt { color: var(--muted); font-size: 0.8125rem; }
-    .figures dd { margin: 0; font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-    @media (max-width: 30rem) {
-      .figures { grid-template-columns: 1fr; }
+    .figures div { border-top: 2px solid var(--bar); padding-top: 0.75rem; }
+    .figures dt {
+      color: var(--muted);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
-    .table-section { margin-top: 2.5rem; }
-    .table-section h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .figures dd {
+      margin: 0.25rem 0 0;
+      font-size: var(--text-figure);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 30rem) {
+      .figures { grid-template-columns: 1fr; gap: 1.25rem; }
+    }
+
+    /* Chart */
+    .chart { margin-top: var(--space-section); }
+    .chart .note { margin-bottom: 1.25rem; max-width: 46rem; }
+    #chart-status { color: var(--muted); font-size: var(--text-sm); margin: 0 0 1rem; }
+    .bars { list-style: none; padding: 0; margin: 0; }
+    .bars li {
+      display: grid;
+      grid-template-columns: 10rem 1fr 6rem;
+      align-items: center;
+      gap: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .city { font-size: var(--text-base); line-height: 1.3; }
+    .city small { display: block; color: var(--muted); font-size: var(--text-sm); }
+    .track {
+      background: var(--track);
+      border-radius: 3px;
+      height: 1.5rem;
+      overflow: hidden;
+    }
+    .fill { display: block; height: 100%; background: var(--bar); border-radius: 3px; }
+    .value {
+      text-align: right;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 30rem) {
+      .bars li { grid-template-columns: 7.5rem 1fr 5.5rem; gap: 0.625rem; }
+    }
+
+    /* Table */
+    .table-section { margin-top: var(--space-section); }
+    .table-section .note { margin-bottom: 1.25rem; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
-    th, td { padding: 0.5rem 0.5rem; border-bottom: 1px solid var(--track); text-align: left; }
-    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-base);
+      font-variant-numeric: tabular-nums;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--rule);
+      text-align: left;
+      vertical-align: top;
+    }
+    th:first-child, td:first-child { padding-left: 0; }
+    th:last-child, td:last-child { padding-right: 0; }
+    th.num, td.num { text-align: right; }
+    th { font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.02em; color: var(--muted); }
+    td { font-size: var(--text-base); }
     th button {
       all: unset;
       cursor: pointer;
-      font-weight: 600;
+      font: inherit;
+      letter-spacing: inherit;
       color: var(--text);
+      font-weight: 600;
     }
-    th button:focus-visible { outline: 2px solid var(--bar); outline-offset: 2px; }
-    th[aria-sort="ascending"] button::after { content: " \25B2"; font-size: 0.75em; }
-    th[aria-sort="descending"] button::after { content: " \25BC"; font-size: 0.75em; }
+    th button:focus-visible { outline: 2px solid var(--bar); outline-offset: 3px; }
+    th[aria-sort="ascending"] button::after { content: " \25B2"; font-size: 0.7em; }
+    th[aria-sort="descending"] button::after { content: " \25BC"; font-size: 0.7em; }
+
+    /* Method */
+    .method {
+      margin-top: var(--space-section);
+      padding-top: 2rem;
+      border-top: 2px solid var(--rule);
+    }
+    .method ul { list-style: none; padding: 0; margin: 0; }
+    .method li {
+      color: var(--muted);
+      font-size: var(--text-base);
+      max-width: 46rem;
+      margin-bottom: 0.75rem;
+    }
+    .method li:last-child { margin-bottom: 0; }
+
+    footer {
+      margin-top: var(--space-section);
+      padding: 2rem 0 3rem;
+      border-top: 1px solid var(--rule);
+      font-size: var(--text-sm);
+      color: var(--muted);
+    }
+    footer p { margin: 0; max-width: 46rem; }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="inner">
+  <div class="container">
+    <header class="site-header">
       <p class="title">College-town home sales</p>
       <p class="subtitle">Findings from the College-town home sales dataset</p>
-    </div>
-  </header>
-  <section class="banner" aria-label="About this site">
-    <div class="inner">
+    </header>
+    <section class="banner" aria-label="About this site">
       <p>This site looks at home sales near university campuses. Each row in the dataset is one completed sale, with the dates the home was listed, went under contract and closed. The figures are as the source reported them and have not been checked against county records.</p>
-    </div>
-  </section>
-  <main>
-    <h1>This site is under construction</h1>
-    <p>It will show findings from the College-town home sales dataset.</p>
-
-    <dl class="figures" aria-label="Key figures">
-      <div><dt>Cities</dt><dd id="fig-cities">–</dd></div>
-      <div><dt>Sales counted</dt><dd id="fig-sales">–</dd></div>
-      <div><dt>Lowest to highest city median</dt><dd id="fig-range">–</dd></div>
-    </dl>
-
-    <section class="chart" aria-labelledby="chart-title">
-      <h2 id="chart-title">Median sale price by city</h2>
-      <p class="note">
-        Each bar is the median sale price of the home sales in one city, from the <span id="city-count">all</span> cities in the dataset.
-        Sales under $10,000 are left out. The numbers are computed in your browser from
-        <code>data/college_town_home_sales.csv</code>.
-      </p>
-      <p id="chart-status" role="status">Loading the data…</p>
-      <ol class="bars" id="bars"></ol>
     </section>
+  </div>
 
-    <section class="table-section" aria-labelledby="table-title">
-      <h2 id="table-title">All cities</h2>
-      <p class="note">Select a column heading to sort. The same figures as the chart above.</p>
-      <div class="table-wrap">
-        <table id="city-table">
-          <thead>
-            <tr>
-              <th scope="col" data-key="city"><button type="button">City</button></th>
-              <th scope="col" data-key="campus"><button type="button">Nearest campus</button></th>
-              <th scope="col" class="num" data-key="sales"><button type="button">Sales</button></th>
-              <th scope="col" class="num" data-key="median" aria-sort="descending"><button type="button">Median sale price</button></th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  <div class="container">
+    <main>
+      <h1>Median sale price by college town</h1>
+      <p>The median price of homes sold in each college town, city by city.</p>
 
-    <section class="method" aria-labelledby="method-title">
-      <h2 id="method-title">How these numbers were calculated</h2>
-      <ul class="note">
-        <li>Every figure is computed from <code>data/college_town_home_sales.csv</code> when the page loads.</li>
-        <li>The median sale price is the middle sale price of one city's home sales, after sales under $10,000 are left out. That cutoff leaves out <span id="excluded">–</span> sales.</li>
-        <li>These are prices paid to buy homes. They are not rents, so they do not show what a student would pay to live in a home.</li>
-        <li>The sales were collected in March 2026 from public property listings. The prices are as the source reported them and have not been checked against county records.</li>
-      </ul>
-    </section>
-  </main>
-  <footer>
-    <p>Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for Business Emerging Technologies. Data collected March 2026.</p>
-  </footer>
+      <dl class="figures" aria-label="Key figures">
+        <div><dt>Cities</dt><dd id="fig-cities">–</dd></div>
+        <div><dt>Sales counted</dt><dd id="fig-sales">–</dd></div>
+        <div><dt>Price range</dt><dd id="fig-range">–</dd></div>
+      </dl>
+
+      <section class="chart" aria-labelledby="chart-title">
+        <h2 id="chart-title">Median sale price by city</h2>
+        <p class="note">
+          Each bar is the median sale price of the home sales in one city, from the <span id="city-count">all</span> cities in the dataset.
+          Sales under $10,000 are left out. The numbers are computed in your browser from
+          <code>data/college_town_home_sales.csv</code>.
+        </p>
+        <p id="chart-status" role="status">Loading the data…</p>
+        <ol class="bars" id="bars"></ol>
+      </section>
+
+      <section class="table-section" aria-labelledby="table-title">
+        <h2 id="table-title">All cities</h2>
+        <p class="note">Select a column heading to sort. The same figures as the chart above.</p>
+        <div class="table-wrap">
+          <table id="city-table">
+            <thead>
+              <tr>
+                <th scope="col" data-key="city"><button type="button">City</button></th>
+                <th scope="col" data-key="campus"><button type="button">Nearest campus</button></th>
+                <th scope="col" class="num" data-key="sales"><button type="button">Sales</button></th>
+                <th scope="col" class="num" data-key="median" aria-sort="descending"><button type="button">Median sale price</button></th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="method" aria-labelledby="method-title">
+        <h2 id="method-title">How these numbers were calculated</h2>
+        <ul>
+          <li>Every figure is computed from <code>data/college_town_home_sales.csv</code> when the page loads.</li>
+          <li>The median sale price is the middle sale price of one city's home sales, after sales under $10,000 are left out. That cutoff leaves out <span id="excluded">–</span> sales.</li>
+          <li>These are prices paid to buy homes. They are not rents, so they do not show what a student would pay to live in a home.</li>
+          <li>The sales were collected in March 2026 from public property listings. The prices are as the source reported them and have not been checked against county records.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for Business Emerging Technologies. Data collected March 2026.</p>
+    </footer>
+  </div>
 
   <script>
     (function () {
