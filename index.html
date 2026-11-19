@@ -71,6 +71,13 @@
     .site-header .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
     .site-header .title { font-size: 1.125rem; font-weight: 700; margin: 0; }
     .site-header .subtitle { color: var(--muted); font-size: 0.875rem; margin: 0; }
+    .banner {
+      background: var(--track);
+      border-bottom: 1px solid var(--track);
+      padding: 1rem 0;
+    }
+    .banner .inner { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
+    .banner p { margin: 0; font-size: 0.9375rem; }
   </style>
 </head>
 <body>
@@ -80,6 +87,11 @@
       <p class="subtitle">Findings from the College-town home sales dataset</p>
     </div>
   </header>
+  <section class="banner" aria-label="About this site">
+    <div class="inner">
+      <p>This site looks at home sales near university campuses. Each row in the dataset is one completed sale, with the dates the home was listed, went under contract and closed. The figures are as the source reported them and have not been checked against county records.</p>
+    </div>
+  </section>
   <main>
     <h1>This site is under construction</h1>
     <p>It will show findings from the College-town home sales dataset.</p>
