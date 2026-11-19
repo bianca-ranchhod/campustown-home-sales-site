@@ -1,4 +1,4 @@
-# [Your site's title]
+# College-town home sales
 
 ## Start here (delete this section before you submit)
 
@@ -15,7 +15,7 @@ This repository is your starting point for the Home Sales case. It already holds
 
 | Path | What it is |
 |---|---|
-| `index.html` | A placeholder page. Replace it with your site. |
+| `index.html` | The site: a dashboard of median sale price by city. |
 | `data/college_town_home_sales.csv` | The dataset, version 1.0: 35,442 rows. Your site reads this file. |
 | `data/college_town_home_sales.xlsx`, `.sqlite`, `.duckdb`, `.parquet` | The same data in Excel, SQLite, DuckDB and Parquet formats, with identical values |
 | `docs/data_description_sheet.md` | What every column means, and five problems in the data |
@@ -28,19 +28,34 @@ Don't edit any of the five dataset files. Your site needs only the CSV file. The
 
 ## What this site is for
 
-_Replace this line with your site's question and audience, or a short description of the site._
+This site is for students looking for housing near different college campuses. It answers one question: what is the median sale price of homes sold in each college town? It shows a bar chart, a sortable table and the key figures, with the calculation rule stated on the page. It is a findings site only. It does not take contact details or other input.
 
 ## Live site
 
-https://your-username.github.io/your-repo-name/
+https://bianca-ranchhod.github.io/campustown-home-sales-site/
+
+This address follows GitHub Pages' pattern for this repository. It goes live once the pull request is merged into `main`, and I have not checked that it loads.
 
 ## Data notes
 
-_Replace this line. Say which rows you left out and why, and how each figure on the site is defined. "Five things that will bite you" in the description sheet lists the problems to cover._
+- **How each figure is defined.** The median sale price for a city is the middle sale price of that city's sales, after sales under $10,000 are left out. The sales count is the number of sales used for that city. The lowest and highest city medians are the smallest and largest of those city medians. The total sales count is the sum of the city counts.
+- **Rows left out.** 40 sales under $10,000 are left out, as the description sheet suggests for its impossible prices. The page states this count and computes it when it loads. No other rows are removed.
+- **Not the sheet's $1,000 cutoff.** The description sheet's medians use sales of $1,000 or more. This site uses $10,000, so a few medians differ by a small amount. Ann Arbor's median is $572,000 here and $571,000 in the sheet.
+- **Five things that will bite you, and what the site did about each one:**
+  1. *Days on market.* The site does not use listing or contract dates, so the blanks in those columns do not affect it.
+  2. *Street addresses are not unique.* The site does not use addresses. It counts sales by city and never removes rows that share an address.
+  3. *Impossible prices.* Handled by the $10,000 cutoff above.
+  4. *`home_type` is unreliable.* The site does not use it.
+  5. *Impossible areas and lot sizes.* The site does not use living area or lot size.
+- **Campus names** come from the `university` column. Each city maps to one campus in the data.
+- **Prices are purchase prices, not rents.** The page says this, so a student does not read a sale price as a monthly cost.
 
 ## Tools we used
 
-_Replace this line with your AI coding agent or agents, and any libraries and other tools you used._
+- **AI coding agent:** Claude Code, which wrote and edited the site under the instructions in `AGENTS.md`.
+- **Site:** plain HTML, CSS and JavaScript, with no libraries and no build step. The page reads the CSV in the visitor's browser.
+- **Publishing:** GitHub Pages, through `.github/workflows/pages.yml`.
+- **Checks:** Python 3 and Node.js, run in the agent's environment to recompute the city medians and the excluded count from the CSV and compare them with the page's logic. No browser test was completed.
 
 ## Citation
 
@@ -48,4 +63,4 @@ College-town home sales dataset, version 1.0 (2026). University of Illinois-Delo
 
 ## Who did what
 
-_For teams: replace this line with each member's name and what they did. If you worked alone, delete this section._
+The repository owner set the question and checked each change. An AI coding agent (Claude Code) wrote the page and this README, working from the owner's instructions in `AGENTS.md`.
