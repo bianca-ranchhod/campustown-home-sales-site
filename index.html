@@ -99,7 +99,7 @@
     <section class="chart" aria-labelledby="chart-title">
       <h2 id="chart-title">Median sale price by city</h2>
       <p class="note">
-        Each bar is the median sale price of the home sales in one city, from the 18 cities in the dataset.
+        Each bar is the median sale price of the home sales in one city, from the <span id="city-count">all</span> cities in the dataset.
         Sales under $10,000 are left out. The numbers are computed in your browser from
         <code>data/college_town_home_sales.csv</code>.
       </p>
@@ -185,6 +185,7 @@
           });
           items.sort(function (a, b) { return b.median - a.median; });
           var largest = items[0].median;
+          document.getElementById('city-count').textContent = items.length;
 
           items.forEach(function (item) {
             var li = document.createElement('li');
